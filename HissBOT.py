@@ -1,11 +1,11 @@
 import discord
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import asyncio
 import base64
 import requests
 
-load_dotenv(dotenv_path="HissBOT.env")
+# load_dotenv(dotenv_path="HissBOT.env")
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
@@ -14,7 +14,7 @@ client = discord.Client(intents=intents)
 
 CHANNEL_WHITELIST = [1365293969306681406]  # Test: 1365649281536626751
 
-load_dotenv(dotenv_path="Google.env")
+# load_dotenv(dotenv_path="Google.env")
 api_key = os.getenv("GOOGLE_API_KEY")
 
 # ================= OCR =================
