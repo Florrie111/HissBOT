@@ -1,22 +1,23 @@
 import discord
 import os
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 import asyncio
 import base64
 import requests
 from discord import ui
+import json
 import datetime
 
-# load_dotenv(dotenv_path="HissBOT.env")
+load_dotenv(dotenv_path="HissBOT.env")
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-CHANNEL_WHITELIST = [1365293969306681406]  # Test: 1365649281536626751
+CHANNEL_WHITELIST = [1365649281536626751]  # Only: 1365649281536626751, Hiss: 1365293969306681406, Another:  1364313069022613524
 
-# load_dotenv(dotenv_path="Google.env")
+load_dotenv(dotenv_path="Google.env")
 api_key = os.getenv("GOOGLE_API_KEY")
 
 # ================= OCR =================
@@ -42,28 +43,63 @@ def recognize_text_google(image_path):
         print("result:", result)
         return ""
 
+
+# ================= 紀錄 =================
+VERIFICATION_LOG_PATH = "verification_log.json"
+
+def save_verification_result(user_id, role_name):
+    now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+    record = {
+        "user_id": user_id,
+        "verified_role": role_name,
+        "verified_time": now.strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    try:
+        with open(VERIFICATION_LOG_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        data = []
+
+    # delete old record
+    data = [item for item in data if item["user_id"] != user_id]
+    data.append(record)
+
+    with open(VERIFICATION_LOG_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 # ================= 按鈕 =================
+# TODO: Change channel IDs here
+VERIFY_BUTTON_CHANNEL_ID = 1365649281536626751 # test: 1365649281536626751, Hiss: 1365293969306681406
+VERIFY_THREAD_CHANNEL_ID = 1364313069022613524 # test: 1364313069022613524, Hiss: 
+
 class VerifyButtonView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    # @ui.button(label="🔰 我要驗證", style=discord.ButtonStyle.success)
     @discord.ui.button(label="🔰 我要驗證", style=discord.ButtonStyle.success, custom_id="verify_button")
     async def verify_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.channel.id not in CHANNEL_WHITELIST:
-            await interaction.response.send_message("❌ 這裡不能使用驗證！", ephemeral=True)
+        if interaction.channel.id != VERIFY_BUTTON_CHANNEL_ID:
+            await interaction.response.send_message("❌ 請到指定頻道點擊驗證按鈕！", ephemeral=True)
+            return
+
+        verify_channel = interaction.guild.get_channel(VERIFY_THREAD_CHANNEL_ID)
+        if not verify_channel:
+            await interaction.response.send_message("❌ 驗證頻道設定錯誤，請通知管理員！", ephemeral=True)
             return
 
         thread_name = f"verify-{interaction.user.name}-{interaction.user.id}"
-        thread = await interaction.channel.create_thread(
+
+        thread = await verify_channel.create_thread(
             name=thread_name,
             type=discord.ChannelType.private_thread,
             auto_archive_duration=60,
             invitable=False
         )
+
         await thread.add_user(interaction.user)
         await thread.send(f"{interaction.user.mention} 請上傳你的會員截圖進行驗證 ✨")
-        await interaction.response.send_message("✅ 已建立你的驗證區，請進入 thread 上傳截圖！", ephemeral=True)
+        await interaction.response.send_message("✅ 已建立你的私人驗證區，請進入 thread 上傳截圖！", ephemeral=True)
 
 # ================= on_ready =================
 @client.event
@@ -88,6 +124,54 @@ async def on_ready():
 async def to_thread(func, *args, **kwargs):
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, func, *args, **kwargs)
+
+# ================= 拔掉過期的人 =================
+async def daily_check_and_remove_roles():
+    await client.wait_until_ready()
+    while not client.is_closed():
+        now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+        
+        # 計算到下個00:00還要多久
+        next_run = (now + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        wait_seconds = (next_run - now).total_seconds()
+
+        print(f"Next membership check will be in {wait_seconds/3600:.2f} hours")
+        await asyncio.sleep(wait_seconds)
+
+        try:
+            with open(VERIFICATION_LOG_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data = []
+
+        expired_users = []
+        for item in data:
+            user_id = item["user_id"]
+            verified_time = datetime.datetime.strptime(item["verified_time"], "%Y-%m-%d %H:%M:%S")
+            if (now - verified_time).days > 30:
+                expired_users.append((user_id, item["verified_role"]))
+
+        guild = client.guilds[0]  # 取第一個伺服器，如果有多個伺服器再調整
+        for user_id, role_key in expired_users:
+            member = guild.get_member(user_id)
+            if member:
+                role_names = {
+                    "hiss": ["hiss"],
+                    "hiss squad": ["hiss", "hiss squad"],
+                    "hisser": ["hiss", "hiss squad", "hisser"]
+                }.get(role_key, [])
+
+                for role_name in role_names:
+                    role = discord.utils.get(guild.roles, name=role_name)
+                    if role and role in member.roles:
+                        await member.remove_roles(role)
+                        print(f"Removed role {role.name} from user {member} due to expiration.")
+
+        # 清除已經處理掉的人
+        data = [item for item in data if (now - datetime.datetime.strptime(item["verified_time"], "%Y-%m-%d %H:%M:%S")).days <= 30]
+        with open(VERIFICATION_LOG_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
 
 # ================= 驗證流程 =================
 @client.event
@@ -145,11 +229,15 @@ async def on_message(message):
                             role_display = "、".join(role_list[member])
                             await message.channel.send(f"✅ 驗證成功！已成功將您加入 {role_display} 身分組！")
                             await status_msg.edit(content="✅ 驗證完成，thread 將在 1 分鐘後自動封存！")
+
+                            # save results
+                            save_verification_result(message.author.id, member)
+                            now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+                            print(f"{now.strftime('%Y/%m/%d %H:%M:%S')} User {message.author}: valid {member}.")
                             await asyncio.sleep(60)
                             await message.channel.edit(archived=True)
                             await message.channel.leave()
-                            now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
-                            print(f"{now.strftime('%Y/%m/%d %H:%M:%S')} User {message.author}: valid {member}.")
+
 
                         except Exception as error:
                             print("An error occurred:", error)
