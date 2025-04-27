@@ -4,6 +4,8 @@ import os
 import asyncio
 import base64
 import requests
+from discord import ui
+import datetime
 
 # load_dotenv(dotenv_path="HissBOT.env")
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -41,8 +43,6 @@ def recognize_text_google(image_path):
         return ""
 
 # ================= 按鈕 =================
-from discord import ui
-
 class VerifyButtonView(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -148,7 +148,8 @@ async def on_message(message):
                             await asyncio.sleep(60)
                             await message.channel.edit(archived=True)
                             await message.channel.leave()
-                            print(f"User {message.author}: valid {member}.")
+                            now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+                            print(f"{now.strftime('%Y/%m/%d %H:%M:%S')} User {message.author}: valid {member}.")
 
                         except Exception as error:
                             print("An error occurred:", error)
@@ -156,7 +157,8 @@ async def on_message(message):
 
                     else:
                         await message.channel.send("❌ 圖片未通過驗證，無法自動加入身分組。請重新檢查截圖內容！")
-                        print(f"User {message.author}: invalid.")
+                        now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+                        print(f"{now.strftime('%Y/%m/%d %H:%M:%S')} User {message.author}: invalid.")
                     break
 
 client.run(TOKEN)
