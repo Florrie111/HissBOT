@@ -8,14 +8,14 @@ from discord import ui
 import json
 import datetime
 
-load_dotenv(dotenv_path="HissBOT.env")
+# load_dotenv(dotenv_path="HissBOT.env")
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-load_dotenv(dotenv_path="Google.env")
+# load_dotenv(dotenv_path="Google.env")
 api_key = os.getenv("GOOGLE_API_KEY")
 
 # ================= OCR =================
