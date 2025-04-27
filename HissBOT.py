@@ -59,6 +59,7 @@ def save_verification_result(user_id, role_name):
         with open(VERIFICATION_LOG_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
+        print("Failed to save the results")
         data = []
 
     # delete old record
