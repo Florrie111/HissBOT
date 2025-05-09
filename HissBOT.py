@@ -115,6 +115,8 @@ async def on_message(message):
         return
 
     if isinstance(message.channel, discord.Thread):
+        if message.channel.parent_id != CHANNEL_ID:
+            return
         if message.attachments:
             for attachment in message.attachments:
                 if any(attachment.filename.lower().endswith(ext) for ext in ['.png', '.jpg', '.jpeg']):
