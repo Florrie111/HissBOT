@@ -28,21 +28,26 @@ def recognize_text_google(image_path):
     data = {
         "requests": [{
             "image": {"content": content},
-            "features": [{"type": "TEXT_DETECTION"}]
+            "features": [{"type": "DOCUMENT_TEXT_DETECTION"}],
+            "imageContext": {
+                "languageHints": ["en", "zh-Hant", "ja"]  # 英文、繁中、日文
+            }
         }]
     }
 
     response = requests.post(url, json=data)
     result = response.json()
 
-    if 'responses' in result and 'textAnnotations' in result['responses'][0]:
+    if 'responses' in result and 'fullTextAnnotation' in result['responses'][0]:
+        return result['responses'][0]['fullTextAnnotation']['text']
+    elif 'responses' in result and 'textAnnotations' in result['responses'][0]:
         return result['responses'][0]['textAnnotations'][0]['description']
     else:
         print("result:", result)
         return ""
-
+    
 # ================= 紀錄 =================
-MEMBERSHIP_LOG_CHANNEL_ID = 1366064300682383482 # test: 1366059232046223440, Hiss: 1366064300682383482
+MEMBERSHIP_LOG_CHANNEL_ID = 1366059232046223440 # test: 1366059232046223440, Hiss: 1366064300682383482
 
 async def log_verification_success(user, role_name):
     now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
@@ -54,7 +59,7 @@ async def log_verification_success(user, role_name):
 
 # ================= 按鈕 =================
 # TODO: Change channel IDs here
-CHANNEL_ID = 1365293969306681406 # test: 1365649281536626751, Hiss: 1365293969306681406
+CHANNEL_ID = 1365649281536626751 # test: 1365649281536626751, Hiss: 1365293969306681406
 
 class VerifyButtonView(ui.View):
     def __init__(self):
@@ -127,6 +132,7 @@ async def on_message(message):
                         f.write(image_bytes)
 
                     texts = await to_thread(recognize_text_google, "temp.jpg")
+                    print(texts)
 
                     if ("Hisser" in texts) or ("$750" in texts):
                         member = "hisser"
@@ -134,6 +140,9 @@ async def on_message(message):
                         member = "hiss squad"
                     elif ("Hiss" in texts) or ("$75" in texts):
                         member = "hiss"
+                    elif ("朔" in texts) or ("さくろ" in texts) or ("sakuro" in texts):
+                        if ("Tier" in texts) or ("Subscription" in texts) or ("層級" in texts) or ("訂閱" in texts):
+                            member = "hiss"
                     else:
                         member = "unknown"
 
