@@ -47,7 +47,7 @@ def recognize_text_google(image_path):
         return ""
     
 # ================= 紀錄 =================
-MEMBERSHIP_LOG_CHANNEL_ID = 1366059232046223440 # test: 1366059232046223440, Hiss: 1366064300682383482
+MEMBERSHIP_LOG_CHANNEL_ID = 1366064300682383482 # test: 1366059232046223440, Hiss: 1366064300682383482
 
 async def log_verification_success(user, role_name):
     now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
@@ -59,7 +59,7 @@ async def log_verification_success(user, role_name):
 
 # ================= 按鈕 =================
 # TODO: Change channel IDs here
-CHANNEL_ID = 1365649281536626751 # test: 1365649281536626751, Hiss: 1365293969306681406
+CHANNEL_ID = 1365293969306681406 # test: 1365649281536626751, Hiss: 1365293969306681406
 
 class VerifyButtonView(ui.View):
     def __init__(self):
@@ -132,7 +132,7 @@ async def on_message(message):
                         f.write(image_bytes)
 
                     texts = await to_thread(recognize_text_google, "temp.jpg")
-                    print(texts)
+                    # print(texts)
 
                     if ("Hisser" in texts) or ("$750" in texts):
                         member = "hisser"
@@ -264,3 +264,4 @@ async def daily_check_and_remove_roles_from_membership_channel():
                 print(f"Failed to delete message {msg.id}: {e}")
 
 client.run(TOKEN)
+
