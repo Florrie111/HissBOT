@@ -132,7 +132,7 @@ async def on_message(message):
                         f.write(image_bytes)
 
                     texts = await to_thread(recognize_text_google, "temp.jpg")
-                    # print(texts)
+                    print(texts)
 
                     if ("Hisser" in texts) or ("$750" in texts):
                         member = "hisser"
@@ -264,4 +264,5 @@ async def daily_check_and_remove_roles_from_membership_channel():
                 print(f"Failed to delete message {msg.id}: {e}")
 
 client.run(TOKEN)
+
 
