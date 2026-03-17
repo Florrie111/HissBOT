@@ -248,7 +248,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
                 try:
                     member = await guild.fetch_member(user_id)
                 except discord.NotFound:
-                    print(f"User {user_id} not found
+                    print(f"User {user_id} not found")
                     continue
                 if member:
                     role_names = {
