@@ -241,6 +241,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     print(f"User {user_id} not found")
                     continue
                 if member:
+                    print(f"{member.name} verified {days_passed} days ago as {role_key}")
                     role_names = {
                         "hiss": ["hiss"],
                         "hiss squad": ["hiss", "hiss squad"],
@@ -259,6 +260,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     print(f"User {user_id} not found")
                     continue
                 if member:
+                    print(f"{member.name} verified {days_passed} days ago as {role_key}")
                     role_names = {
                         "hiss": ["hiss"],
                         "hiss squad": ["hiss", "hiss squad"],
