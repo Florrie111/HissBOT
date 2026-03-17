@@ -100,11 +100,11 @@ class VerifyButtonView(ui.View):
         member = interaction.user
 
         if reminder_role in member.roles:
-            await member.remove_roles(reminder_role)
             await interaction.response.send_message("🔕 你已取消到期提醒。", ephemeral=True)
+            await member.remove_roles(reminder_role)
         else:
-            await member.add_roles(reminder_role)
             await interaction.response.send_message("🔔 你已開啟到期提醒。", ephemeral=True)
+            await member.add_roles(reminder_role)
 
 # ================= on_ready =================
 @client.event
@@ -116,14 +116,14 @@ async def on_ready():
     channel = client.get_channel(CHANNEL_ID)
     if channel:
         async for msg in channel.history(limit=10):
-            if msg.author == client.user and msg.components:
-                # 已經有自己的按鈕了，不重發
-                print(f"按鈕訊息已存在於 {channel.name}，略過發送")
-                break
-        else:
-            # 沒有找到按鈕訊息，送一個新的
-            await channel.send("請點下方按鈕開始驗證：", view=VerifyButtonView())
-            print(f"發送新的按鈕訊息到 {channel.name}")
+            # if msg.author == client.user and msg.components:
+            #     # 已經有自己的按鈕了，不重發
+            #     print(f"按鈕訊息已存在於 {channel.name}，略過發送")
+            #     break
+            # else:
+                # 沒有找到按鈕訊息，送一個新的
+                await channel.send("請點下方按鈕開始驗證：", view=VerifyButtonView())
+                print(f"發送新的按鈕訊息到 {channel.name}")
 
 # ================= 背景 Thread 任務 =================
 async def to_thread(func, *args, **kwargs):
