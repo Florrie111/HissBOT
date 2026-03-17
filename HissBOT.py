@@ -220,9 +220,9 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     if (now - verified_time).days > 60:
                         try:
                             await msg.delete()
-                            print(f"Deleted old log message: {msg.id}")
+                            print(f"Deleted old log message: {msg.content}")
                         except Exception as e:
-                            print(f"Failed to delete message {msg.id}: {e}")
+                            print(f"Failed to delete message {msg.content}: {e}")
 
                 except Exception as e:
                     print(f"Error parsing log message: {msg.content} Error: {e}")
@@ -253,7 +253,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     for role_name in role_names:
                         role = discord.utils.get(guild.roles, name=role_name)
                         if role and role in member.roles:
-                            # await member.remove_roles(role)
+                            await member.remove_roles(role)
                             print(f"Removed {role.name} from {member.name} (expired {days_passed} days ago)")
             else:
                 try:
@@ -271,11 +271,11 @@ async def daily_check_and_remove_roles_from_membership_channel():
                 for role_name in role_names:
                         role = discord.utils.get(guild.roles, name=role_name)
                         if role and role not in member.roles:
-                            # await member.add_roles(role)
+                            await member.add_roles(role)
                             print(f"Add {role.name} to {member.name}")
 
         now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
-        next_run = (now + datetime.timedelta(minutes=5)) # .replace(hour=0, minute=0, second=0, microsecond=0)
+        next_run = (now + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
         wait_seconds = (next_run - now).total_seconds()
 
         print(f"Next membership check will be in {wait_seconds/3600:.2f} hours")
