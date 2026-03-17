@@ -213,7 +213,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
         logs = []
         messages_to_delete = []
 
-        async for msg in membership_channel.history(limit=1000):  # 根據需要調大limit
+        async for msg in membership_channel.history(limit=1000):
             print("msg.content:", msg.content)
             if msg.content.startswith("✅"):
                 try:
@@ -263,7 +263,11 @@ async def daily_check_and_remove_roles_from_membership_channel():
                             # await member.remove_roles(role)
                             print(f"Removed {role.name} from {member.name} (expired {days_passed} days ago)")
             else:
-                member = await guild.fetch_member(user_id)
+                try:
+                    member = await guild.fetch_member(user_id)
+                except discord.NotFound:
+                    print(f"User {user_id} not found")
+                    continue
                 if member:
                     role_names = {
                         "hiss": ["hiss"],
