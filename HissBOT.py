@@ -194,6 +194,19 @@ async def on_message(message):
                         print(f"{now.strftime('%Y/%m/%d %H:%M:%S')} User {message.author}: invalid.")
                     break
 
+# ================= 發送提醒訊息 =================
+async def send_expiry_reminder(member, days_left):
+    try:
+        await member.send(
+            f"提醒您，您的 Hiss 會員身分組將在 {days_left} 天後到期。\n"
+            f"請記得重新到驗證頻道上傳會員截圖，以免身分組被移除。"
+        )
+        print(f"Sent expiry reminder to {member.name}: {days_left} days left")
+    except discord.Forbidden:
+        print(f"Cannot DM {member.name}, skipped")
+    except Exception as e:
+        print(f"Failed to send reminder to {member.name}: {e}")
+
 # ================= 拔除過期身分組 =================
 async def daily_check_and_remove_roles_from_membership_channel():
     await client.wait_until_ready()
@@ -263,6 +276,9 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     continue
                 if member:
                     print(f"{member.name} verified {days_passed} days ago as {role_key}")
+                    days_left = 30 - days_passed
+                    if days_left in [7, 3, 1]:
+                        await send_expiry_reminder(member, days_left)
                     role_names = {
                         "hiss": ["hiss"],
                         "hiss squad": ["hiss", "hiss squad"],
