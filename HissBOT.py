@@ -198,13 +198,6 @@ async def on_message(message):
 async def daily_check_and_remove_roles_from_membership_channel():
     await client.wait_until_ready()
     while not client.is_closed():
-        now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
-        next_run = (now + datetime.timedelta(minutes=1)) # .replace(hour=0, minute=0, second=0, microsecond=0)
-        wait_seconds = (next_run - now).total_seconds()
-
-        print(f"Next membership check will be in {wait_seconds/3600:.2f} hours")
-        await asyncio.sleep(wait_seconds)
-
         membership_channel = client.get_channel(MEMBERSHIP_LOG_CHANNEL_ID)
         if not membership_channel:
             print("Membership log channel not found!")
@@ -287,6 +280,12 @@ async def daily_check_and_remove_roles_from_membership_channel():
             except Exception as e:
                 print(f"Failed to delete message {msg.id}: {e}")
 
+        now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
+        next_run = (now + datetime.timedelta(minutes=5)) # .replace(hour=0, minute=0, second=0, microsecond=0)
+        wait_seconds = (next_run - now).total_seconds()
+
+        print(f"Next membership check will be in {wait_seconds/3600:.2f} hours")
+        await asyncio.sleep(wait_seconds)
 client.run(TOKEN)
 
 
