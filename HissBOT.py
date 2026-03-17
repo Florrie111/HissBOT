@@ -115,15 +115,15 @@ async def on_ready():
 
     channel = client.get_channel(CHANNEL_ID)
     if channel:
-        async for msg in channel.history(limit=10):
+        # async for msg in channel.history(limit=10):
             # if msg.author == client.user and msg.components:
             #     # 已經有自己的按鈕了，不重發
             #     print(f"按鈕訊息已存在於 {channel.name}，略過發送")
             #     break
             # else:
                 # 沒有找到按鈕訊息，送一個新的
-                await channel.send("請點下方按鈕開始驗證：", view=VerifyButtonView())
-                print(f"發送新的按鈕訊息到 {channel.name}")
+        await channel.send("請點下方按鈕開始驗證：", view=VerifyButtonView())
+        print(f"發送新的按鈕訊息到 {channel.name}")
 
 # ================= 背景 Thread 任務 =================
 async def to_thread(func, *args, **kwargs):
