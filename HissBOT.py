@@ -214,9 +214,11 @@ async def daily_check_and_remove_roles_from_membership_channel():
         messages_to_delete = []
 
         async for msg in membership_channel.history(limit=1000):  # 根據需要調大limit
+            print("msg.content:", msg.content)
             if msg.content.startswith("✅"):
                 try:
                     parts = msg.content.split()
+                    print("parts:", parts)
                     date_str = parts[1] + " " + parts[2]
                     user_id = int(parts[6].strip("()"))
                     verified_role = parts[-1]
