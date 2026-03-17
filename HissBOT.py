@@ -308,7 +308,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     days_left = 30 - days_passed
                     reminder_role = discord.utils.get(guild.roles, name="reminder")
                     wants_reminder = reminder_role in member.roles if reminder_role else False
-                    if days_left in [7, 3, 1]:
+                    if wants_reminder and days_left in [7, 3, 1]:
                         await send_expiry_reminder(member, days_left)
                     role_names = {
                         "hiss": ["hiss"],
