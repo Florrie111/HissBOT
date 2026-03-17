@@ -255,6 +255,19 @@ async def daily_check_and_remove_roles_from_membership_channel():
                         if role and role in member.roles:
                             await member.remove_roles(role)
                             print(f"Removed {role.name} from {member.name} (expired {days_passed} days ago)")
+            else:
+                member = await guild.fetch_member(user_id)
+                if member:
+                    role_names = {
+                        "hiss": ["hiss"],
+                        "hiss squad": ["hiss", "hiss squad"],
+                        "hisser": ["hiss", "hiss squad", "hisser"]
+                    }.get(role_key, [])
+                for role_name in role_names:
+                        role = discord.utils.get(guild.roles, name=role_name)
+                        if role and role not in member.roles:
+                            await member.add_roles(role)
+                            print(f"Add {role.name} to {member.name}")
 
         for msg in messages_to_delete:
             try:
