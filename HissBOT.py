@@ -220,7 +220,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
 
                     if (now - verified_time).days > 60:
                         # messages_to_delete.append(msg)
-                        print("[delete message]", msg)
+                        print("[delete message]", msg.content)
 
                 except Exception as e:
                     print(f"Error parsing log message: {msg.content} Error: {e}")
