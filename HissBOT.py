@@ -241,7 +241,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
             if user_id not in latest_verified or latest_verified[user_id][1] < verified_time:
                 latest_verified[user_id] = (role, verified_time)
 
-        guild = client.guilds[1]  # TODO
+        guild = membership_channel.guild
         for user_id, (role_key, verified_time) in latest_verified.items():
             days_passed = (now - verified_time).days
             if days_passed > 30:
