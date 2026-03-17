@@ -206,6 +206,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
         logs = []
         messages_to_delete = []
 
+        now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
         async for msg in membership_channel.history(limit=1000):
             if msg.content.startswith("✅"):
                 try:
@@ -223,8 +224,6 @@ async def daily_check_and_remove_roles_from_membership_channel():
 
                 except Exception as e:
                     print(f"Error parsing log message: {msg.content} Error: {e}")
-
-        now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
         
         # 把最新的一次驗證時間記下來
         latest_verified = {}
