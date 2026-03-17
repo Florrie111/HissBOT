@@ -204,7 +204,6 @@ async def daily_check_and_remove_roles_from_membership_channel():
             continue
 
         logs = []
-        messages_to_delete = []
 
         now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
         async for msg in membership_channel.history(limit=1000):
@@ -219,8 +218,11 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     logs.append((user_id, verified_role, verified_time))
 
                     if (now - verified_time).days > 60:
-                        messages_to_delete.append(msg)
-                        print("[delete message]", msg.content)
+                    try:
+                        await msg.delete()
+                        print(f"Deleted old log message: {msg.id}")
+                    except Exception as e:
+                        print(f"Failed to delete message {msg.id}: {e}")
 
                 except Exception as e:
                     print(f"Error parsing log message: {msg.content} Error: {e}")
@@ -271,13 +273,6 @@ async def daily_check_and_remove_roles_from_membership_channel():
                         if role and role not in member.roles:
                             # await member.add_roles(role)
                             print(f"Add {role.name} to {member.name}")
-
-        for msg in messages_to_delete:
-            try:
-                await msg.delete()
-                print(f"Deleted old log message: {msg.id}")
-            except Exception as e:
-                print(f"Failed to delete message {msg.id}: {e}")
 
         now = datetime.datetime.now(tz=datetime.timezone(datetime.timedelta(hours=8)))
         next_run = (now + datetime.timedelta(minutes=5)) # .replace(hour=0, minute=0, second=0, microsecond=0)
