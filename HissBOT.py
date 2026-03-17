@@ -227,7 +227,8 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     logs.append((user_id, verified_role, verified_time))
 
                     if (now - verified_time).days > 60:
-                        messages_to_delete.append(msg)
+                        # messages_to_delete.append(msg)
+                        print("[delete message]", msg)
 
                 except Exception as e:
                     print(f"Error parsing log message: {msg.content} Error: {e}")
@@ -244,7 +245,11 @@ async def daily_check_and_remove_roles_from_membership_channel():
         for user_id, (role_key, verified_time) in latest_verified.items():
             days_passed = (now - verified_time).days
             if days_passed > 30:
-                member = await guild.fetch_member(user_id)
+                try:
+                    member = await guild.fetch_member(user_id)
+                except discord.NotFound:
+                    print(f"User {user_id} not found
+                    continue
                 if member:
                     role_names = {
                         "hiss": ["hiss"],
@@ -255,7 +260,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     for role_name in role_names:
                         role = discord.utils.get(guild.roles, name=role_name)
                         if role and role in member.roles:
-                            await member.remove_roles(role)
+                            # await member.remove_roles(role)
                             print(f"Removed {role.name} from {member.name} (expired {days_passed} days ago)")
             else:
                 member = await guild.fetch_member(user_id)
@@ -268,7 +273,7 @@ async def daily_check_and_remove_roles_from_membership_channel():
                 for role_name in role_names:
                         role = discord.utils.get(guild.roles, name=role_name)
                         if role and role not in member.roles:
-                            await member.add_roles(role)
+                            # await member.add_roles(role)
                             print(f"Add {role.name} to {member.name}")
 
         for msg in messages_to_delete:
