@@ -218,11 +218,11 @@ async def daily_check_and_remove_roles_from_membership_channel():
                     logs.append((user_id, verified_role, verified_time))
 
                     if (now - verified_time).days > 60:
-                    try:
-                        await msg.delete()
-                        print(f"Deleted old log message: {msg.id}")
-                    except Exception as e:
-                        print(f"Failed to delete message {msg.id}: {e}")
+                        try:
+                            await msg.delete()
+                            print(f"Deleted old log message: {msg.id}")
+                        except Exception as e:
+                            print(f"Failed to delete message {msg.id}: {e}")
 
                 except Exception as e:
                     print(f"Error parsing log message: {msg.content} Error: {e}")
