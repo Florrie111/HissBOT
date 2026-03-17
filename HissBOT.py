@@ -89,6 +89,23 @@ class VerifyButtonView(ui.View):
         await thread.send(f"{interaction.user.mention} 請上傳你的會員截圖進行驗證 ✨")
         await interaction.response.send_message("✅ 已建立你的私人驗證區，請進入 thread 上傳截圖！", ephemeral=True)
 
+    @discord.ui.button(label="🔔 到期提醒", style=discord.ButtonStyle.secondary, custom_id="reminder_toggle_button")
+    async def reminder_toggle_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        reminder_role = discord.utils.get(interaction.guild.roles, name="reminder")
+
+        if not reminder_role:
+            await interaction.response.send_message("❌ 找不到提醒身分組，請通知管理員。", ephemeral=True)
+            return
+
+        member = interaction.user
+
+        if reminder_role in member.roles:
+            await member.remove_roles(reminder_role)
+            await interaction.response.send_message("🔕 你已取消到期提醒。", ephemeral=True)
+        else:
+            await member.add_roles(reminder_role)
+            await interaction.response.send_message("🔔 你已開啟到期提醒。", ephemeral=True)
+
 # ================= on_ready =================
 @client.event
 async def on_ready():
@@ -207,6 +224,18 @@ async def send_expiry_reminder(member, days_left):
     except Exception as e:
         print(f"Failed to send reminder to {member.name}: {e}")
 
+async def send_expiry_reminder(member, days_left):
+    try:
+        await member.send(
+            f"提醒您，您的 Hiss 會員身分組將在 {days_left} 天後到期。\n"
+            f"請記得重新到驗證頻道上傳會員截圖，以免身分組被移除。"
+        )
+        print(f"Sent expiry reminder to {member.name}: {days_left} days left")
+    except discord.Forbidden:
+        print(f"Cannot DM {member.name}, skipped")
+    except Exception as e:
+        print(f"Failed to send reminder to {member.name}: {e}")
+
 # ================= 拔除過期身分組 =================
 async def daily_check_and_remove_roles_from_membership_channel():
     await client.wait_until_ready()
@@ -277,6 +306,8 @@ async def daily_check_and_remove_roles_from_membership_channel():
                 if member:
                     print(f"{member.name} verified {days_passed} days ago as {role_key}")
                     days_left = 30 - days_passed
+                    reminder_role = discord.utils.get(guild.roles, name="reminder")
+                    wants_reminder = reminder_role in member.roles if reminder_role else False
                     if days_left in [7, 3, 1]:
                         await send_expiry_reminder(member, days_left)
                     role_names = {
